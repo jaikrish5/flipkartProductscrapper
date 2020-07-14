@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request,jsonify
 # from flask_cors import CORS,cross_origin
 import requests
+import pymongo
 
 from bs4 import BeautifulSoup
 from urllib.request import urlopen as uReq
@@ -10,38 +11,53 @@ import requests
 
 app = Flask(__name__) 
 
+dbConn = pymongo.MongoClient("mongodb://localhost:27017/")
+
+dbname='crawlerDB'
+db = dbConn[dbname]
+
 @app.route('/', methods=['GET', 'POST']) # To render Homepage
 def index():
     if (request.method == 'POST'):
-        print('hello')
-        reviews = []
+        
+        
         searchString = request.form['content'].replace(" ","")
-        print(searchString)
-        inputstring = "https://www.flipkart.com/search?q="
-        outputstring = inputstring+searchString
-        source = requests.get(outputstring).text
-        flipkart_html  = BeautifulSoup(source,'lxml')
 
-        for article in flipkart_html.find_all("div", {"class": "_3O0U0u"}):
+        
+        collection=db[searchString]
+        reviews = collection.find({})
 
-            try:
-                name = article.find("div",{"class": "_3wU53n"}).text
-            except :
-                name = None
+        if reviews.count() > 0:
+            return render_template('results.html',reviews=reviews)
+        else:
+            inputstring = "https://www.flipkart.com/search?q="
+            outputstring = inputstring+searchString
+            source = requests.get(outputstring).text
+            flipkart_html  = BeautifulSoup(source,'lxml')
+            reviews = []
+
+            for article in flipkart_html.find_all("div", {"class": "_3O0U0u"}):
+
+                try:
+                    name = article.find("div",{"class": "_3wU53n"}).text
+                except :
+                    name = None
+                    
+                try:
+                    cost = article.find("div",{"class": "_1vC4OE _2rQ-NK"}).text
+                except :
+                    cost = None
+                        
+                try:
+                    desc = article.find("ul",{"class": "vFw0gD"}).text
+                except :
+                    desc = None
                 
-            try:
-                cost = article.find("div",{"class": "_1vC4OE _2rQ-NK"}).text
-            except :
-                cost = None
-                     
-            try:
-                desc = article.find("ul",{"class": "vFw0gD"}).text
-            except :
-                desc = None
-            
 
-            mydict = { "Name": name, "Cost": cost, "Description": desc} 
-            reviews.append(mydict)
+                mydict = { "Name": name, "Cost": cost, "Description": desc}
+                reviews.append(mydict)
+                x = collection.insert_one(mydict) 
+                
 
         print(reviews)
 
