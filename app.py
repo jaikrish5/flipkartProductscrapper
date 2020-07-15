@@ -11,7 +11,7 @@ import requests
 
 
 app = Flask(__name__)
-CORS(app) 
+#CORS(app) 
 
 #dbConn = pymongo.MongoClient("mongodb://localhost:27017/")
 
@@ -19,7 +19,7 @@ CORS(app)
 #db = dbConn[dbname]
 
 @app.route('/', methods=['GET', 'POST']) # To render Homepage
-@cross_origin()
+#@cross_origin()
 def index():
     if (request.method == 'POST'):
         
@@ -62,14 +62,14 @@ def index():
             # collection.insert_one(mydict)     
                 
 
-        print(reviews)
+        
 
         return render_template('results.html', reviews=reviews)
 
     else:
         return render_template('index.html')        
 
-port = int(os.getenv("PORT"))
+#port = int(os.getenv("PORT"))
 if __name__ == '__main__':
-    #app.run(debug=True)
-    app.run(host='0.0.0.0',port=port)
+    app.run(debug=True)
+    #app.run(host='0.0.0.0',port=port)
