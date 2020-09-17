@@ -24,7 +24,7 @@ def index():
     if (request.method == 'POST'):
         
         
-        searchString = request.form['content'].replace(" ","")
+        searchString = str(request.form['content'].replace(" ",""))
 
         
         # collection=db[searchString]
